@@ -20,7 +20,7 @@ const Index = () => {
           </p>
           <div className="flex items-center justify-center gap-4">
             <Button asChild size="lg" className="admin-gradient text-white border-0">
-              <Link to="/admin">
+              <Link to="/auth">
                 Access Admin Panel
                 <ArrowRight className="w-4 h-4 ml-2" />
               </Link>
@@ -92,7 +92,7 @@ const Index = () => {
             Access your admin dashboard and start managing your website content with our powerful CMS
           </p>
           <Button asChild size="lg" variant="secondary">
-            <Link to="/admin">
+            <Link to="/auth">
               Enter Admin Dashboard
               <ArrowRight className="w-4 h-4 ml-2" />
             </Link>
