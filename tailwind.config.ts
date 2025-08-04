@@ -61,6 +61,14 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
+				},
+				admin: {
+					primary: 'hsl(var(--admin-primary))',
+					'primary-dark': 'hsl(var(--admin-primary-dark))',
+					secondary: 'hsl(var(--admin-secondary))',
+					accent: 'hsl(var(--admin-accent))',
+					success: 'hsl(var(--admin-success))',
+					warning: 'hsl(var(--admin-warning))'
 				}
 			},
 			borderRadius: {
