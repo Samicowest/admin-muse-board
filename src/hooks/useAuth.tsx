@@ -19,6 +19,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
+    // Function to check admin status
+    const checkAdminStatus = async (userId: string) => {
+      try {
+        const { data } = await supabase
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', userId)
+          .eq('role', 'admin')
+          .single();
+        
+        setIsAdmin(!!data);
+      } catch (error) {
+        console.error('Error checking admin status:', error);
+        setIsAdmin(false);
+      }
+    };
+
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
@@ -26,20 +43,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUser(session?.user ?? null);
         
         if (session?.user) {
-          // Check if user is admin
-          setTimeout(async () => {
-            try {
-              const { data } = await supabase
-                .from('user_roles')
-                .select('role')
-                .eq('user_id', session.user.id)
-                .eq('role', 'admin')
-                .single();
-              
-              setIsAdmin(!!data);
-            } catch (error) {
-              setIsAdmin(false);
-            }
+          // Check if user is admin (using setTimeout to avoid deadlock)
+          setTimeout(() => {
+            checkAdminStatus(session.user.id);
           }, 0);
         } else {
           setIsAdmin(false);
@@ -49,10 +55,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     );
 
-    // Check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    // Check for existing session and admin status
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
+      
+      if (session?.user) {
+        await checkAdminStatus(session.user.id);
+      } else {
+        setIsAdmin(false);
+      }
+      
       setLoading(false);
     });
 
