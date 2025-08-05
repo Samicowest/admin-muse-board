@@ -116,15 +116,56 @@ export default function HomePage() {
   const [activeSection, setActiveSection] = useState("hero");
   const [isEditing, setIsEditing] = useState(false);
   const [unsavedChanges, setUnsavedChanges] = useState(false);
+  const [sectionData, setSectionData] = useState(() => {
+    // Initialize with the default values from homePageSections
+    const initialData: Record<string, any> = {};
+    homePageSections.forEach(section => {
+      initialData[section.id] = {};
+      section.fields.forEach(field => {
+        initialData[section.id][field.label] = field.value;
+      });
+    });
+    return initialData;
+  });
 
   const handleSave = () => {
     setIsEditing(false);
     setUnsavedChanges(false);
-    // Save logic here
+    // TODO: Implement actual save logic to persist data
+    console.log("Saving data:", sectionData[activeSection]);
   };
 
   const handleEdit = () => {
     setIsEditing(true);
+  };
+
+  const updateFieldValue = (fieldLabel: string, value: any) => {
+    setSectionData(prev => ({
+      ...prev,
+      [activeSection]: {
+        ...prev[activeSection],
+        [fieldLabel]: value
+      }
+    }));
+    setUnsavedChanges(true);
+  };
+
+  const addArrayItem = (fieldLabel: string) => {
+    const currentValue = sectionData[activeSection]?.[fieldLabel] || [];
+    updateFieldValue(fieldLabel, [...currentValue, ""]);
+  };
+
+  const removeArrayItem = (fieldLabel: string, index: number) => {
+    const currentValue = sectionData[activeSection]?.[fieldLabel] || [];
+    const newValue = currentValue.filter((_: any, i: number) => i !== index);
+    updateFieldValue(fieldLabel, newValue);
+  };
+
+  const updateArrayItem = (fieldLabel: string, index: number, value: string) => {
+    const currentValue = sectionData[activeSection]?.[fieldLabel] || [];
+    const newValue = [...currentValue];
+    newValue[index] = value;
+    updateFieldValue(fieldLabel, newValue);
   };
 
   const currentSection = homePageSections.find(section => section.id === activeSection);
@@ -235,37 +276,37 @@ export default function HomePage() {
                       </label>
                       {field.type === "text" && (
                         <Input
-                          value={field.value || ""}
+                          value={sectionData[activeSection]?.[field.label] || ""}
                           disabled={!isEditing}
                           className="admin-input"
-                          onChange={() => setUnsavedChanges(true)}
+                          onChange={(e) => updateFieldValue(field.label, e.target.value)}
                         />
                       )}
                       {field.type === "textarea" && (
                         <Textarea
-                          value={field.value || ""}
+                          value={sectionData[activeSection]?.[field.label] || ""}
                           disabled={!isEditing}
                           className="admin-input min-h-[100px]"
-                          onChange={() => setUnsavedChanges(true)}
+                          onChange={(e) => updateFieldValue(field.label, e.target.value)}
                         />
                       )}
                       {field.type === "number" && (
                         <Input
                           type="number"
-                          value={field.value || ""}
+                          value={sectionData[activeSection]?.[field.label] || ""}
                           disabled={!isEditing}
                           className="admin-input"
-                          onChange={() => setUnsavedChanges(true)}
+                          onChange={(e) => updateFieldValue(field.label, e.target.value)}
                         />
                       )}
                       {field.type === "url" && (
                         <Input
                           type="url"
-                          value={field.value || ""}
+                          value={sectionData[activeSection]?.[field.label] || ""}
                           disabled={!isEditing}
                           className="admin-input"
                           placeholder="https://"
-                          onChange={() => setUnsavedChanges(true)}
+                          onChange={(e) => updateFieldValue(field.label, e.target.value)}
                         />
                       )}
                       {field.type === "file" && (
@@ -279,25 +320,25 @@ export default function HomePage() {
                           </Button>
                         </div>
                       )}
-                      {field.type === "array" && Array.isArray(field.value) && (
+                      {field.type === "array" && (
                         <div className="space-y-2">
-                          {field.value.map((item, itemIndex) => (
+                          {(sectionData[activeSection]?.[field.label] || field.value || []).map((item: string, itemIndex: number) => (
                             <div key={itemIndex} className="flex items-center gap-2">
                               <Input
                                 value={item}
                                 disabled={!isEditing}
                                 className="admin-input flex-1"
-                                onChange={() => setUnsavedChanges(true)}
+                                onChange={(e) => updateArrayItem(field.label, itemIndex, e.target.value)}
                               />
                               {isEditing && (
-                                <Button variant="ghost" size="sm">
+                                <Button variant="ghost" size="sm" onClick={() => removeArrayItem(field.label, itemIndex)}>
                                   <Trash2 className="w-4 h-4 text-destructive" />
                                 </Button>
                               )}
                             </div>
                           ))}
                           {isEditing && (
-                            <Button variant="outline" size="sm">
+                            <Button variant="outline" size="sm" onClick={() => addArrayItem(field.label)}>
                               <Plus className="w-4 h-4 mr-2" />
                               Add Item
                             </Button>
